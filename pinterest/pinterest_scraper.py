@@ -5,7 +5,8 @@ import os
 import requests
 
 BASE_DIR = 'D:\\Pinterest'
-URL_LIST = ['https://www.pinterest.com/archeyesnews/architecture-plans/',
+URL_LIST = ['https://www.pinterest.com/1starchitecture/architecture-portfolio/',
+            'https://www.pinterest.com/archeyesnews/architecture-plans/',
             'https://www.pinterest.com/archeyesnews/architects-drawings/',
             'https://www.pinterest.com/archeyesnews/architecture-retrospective/',
             'https://www.pinterest.com/archeyesnews/architecture-models/']
@@ -47,9 +48,6 @@ class PinterestDriver:
         top_h = self.driver.execute_script('return document.documentElement.scrollTop')
         client_h = self.driver.execute_script('return document.documentElement.clientHeight')
         scroll_h = self.driver.execute_script("return document.documentElement.scrollHeight")
-        # print(f'scrollTop: {top_h}px \n'
-        #       f'scrollHeight: {scroll_h}px \n'
-        #       f'client_h = {client_h}px\n')
         return client_h + top_h == scroll_h
 
     def get_url_dict(self):
@@ -59,6 +57,8 @@ class PinterestDriver:
         for result in results:
             if result.get_attribute('srcset'):
                 img_title = format_filename(result.get_attribute('alt'))
+                # in case of empty alt, have board title as image filename
+                img_title = self.replace_empty_name(img_title)
                 # rename duplicate name
                 if img_title in img_dict.keys():
                     img_title = f'{img_title}_{i}'
@@ -80,6 +80,9 @@ class PinterestDriver:
 
     def close(self):
         self.driver.close()
+
+    def replace_empty_name(self,name):
+        return self.get_title() if not name else name
 
 
 def create_dir(dir_name):
@@ -166,25 +169,26 @@ def main():
 
         # Scroll page by fixed pixels and save image urls into a list until page reaches bottom
         update(img_urls, pin.get_url_dict())
-        while not pin.has_reach_btm():
-            pin.scroll()
-            print('Scrolling down...')
-            time.sleep(5)
-            update(img_urls, pin.get_url_dict())
-        print('Reached bottom!')
-
-        # display_dict(img_urls)
-
-        # Close current window
-        pin.close()
-
-        # Save images to disk (temporary until write a new function to get more info about image)
-        print('Saving images...')
-        write_file(board_title, img_urls)
-
-        # Log Url information
-        print('Logging information...')
-        log(url, img_urls, board_title)
+        display_dict(img_urls)
+        # while not pin.has_reach_btm():
+        #     pin.scroll()
+        #     print('Scrolling down...')
+        #     time.sleep(5)
+        #     update(img_urls, pin.get_url_dict())
+        # print('Reached bottom!')
+        #
+        #
+        #
+        # # Close current window
+        # pin.close()
+        #
+        # # Save images to disk (temporary until write a new function to get more info about image)
+        # print('Saving images...')
+        # write_file(board_title, img_urls)
+        #
+        # # Log Url information
+        # print('Logging information...')
+        # log(url, img_urls, board_title)
 
     print("--- %s seconds ---" % round((time.time() - start_time), 2))
 

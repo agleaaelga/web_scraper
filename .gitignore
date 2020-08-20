@@ -1,2 +1,3 @@
 # ignore all directory named .idea
-.idea/
+../../../.idea/
+images/
