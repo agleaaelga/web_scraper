@@ -1,3 +1,7 @@
-# ignore all directory named .idea
+# ignore all directory named .idea and images
 ../../../.idea/
 images/
+
+# ignore all jpg and tif files
+*.jpg
+*.tif
