@@ -7,6 +7,7 @@ from pinterest import img_caption
 
 IMG_URL_PATTERN = re.compile(r'https://i\.pinimg\.com/originals/.*\.(jpg|png|gif)')
 
+
 class PinterestDriver:
     def __init__(self, pinterst_link, email, password):
         option = webdriver.ChromeOptions()
@@ -22,9 +23,10 @@ class PinterestDriver:
     def login(self):
         self.driver.find_element_by_xpath('//*[@id="HeaderContent"]/div/div[3]/div[1]/button/div').click()
         time.sleep(3)
-        print('Entering credential...')
+        print('Entering email...')
         self.driver.find_element_by_id('email').send_keys(self.email)
         time.sleep(3)
+        print('Entering password...')
         self.driver.find_element_by_id('password').send_keys(self.password)
         time.sleep(5)
         self.driver.find_element_by_xpath('//*[@id="__PWS_ROOT__"]/div[1]/div/div/div[3]/div/div/div/div/div/div['
@@ -42,22 +44,13 @@ class PinterestDriver:
         return client_h + top_h == scroll_h
 
     def get_url_dict(self):
-        i = 1
         img_dict = {}
         results = self.driver.find_elements_by_tag_name('img')
         for result in results:
             if result.get_attribute('srcset'):
-                img_title = format_filename(result.get_attribute('alt'))
-                # in case of empty alt, have board title as image filename
-                img_title = self.replace_empty_name(img_title)
-                # rename duplicate name
-                if img_title in img_dict.keys():
-                    img_title = f'{img_title}_{i}'
-                    i += 1
-                else:
-                    i = 1
+                img_description = result.get_attribute('alt')
                 img_src = get_original_url(IMG_URL_PATTERN, result.get_attribute('srcset'))
-                img_dict[img_title] = img_src
+                img_dict[img_src] = img_description
         return img_dict
 
     def get_title(self):
@@ -72,18 +65,11 @@ class PinterestDriver:
     def close(self):
         self.driver.close()
 
-    def replace_empty_name(self,name):
-        return self.get_title() if not name else name
-
 
 def create_dir(dir_name):
     if not os.path.isdir(dir_name):
         os.mkdir(dir_name)
-        print('Creating directory')
-
-
-# def shorten_oversize_string(string):
-#     return string[:200] if len(string) > 200 else string
+        print('Creating directory...')
 
 
 def get_img_url(pattern, str_list):
@@ -96,11 +82,12 @@ def get_original_url(pattern, string):
 
 
 def write_file(name, url_dict):
-    for k, v in url_dict.items():
+    for i, (k, v) in enumerate(url_dict.items()):
         response = requests.get(k)
-        img_filename = f'{k}.jpg'
+        img_filename = f'{name}_{i}.jpg'
         with open(img_filename, 'wb') as f:
             f.write(response.content)
+        img_caption.caption_jpg(img_filename, v)
 
 
 def log(main_url, url_dict, board_name):
@@ -109,75 +96,10 @@ def log(main_url, url_dict, board_name):
         f.write(f'{board_name} \n{main_url}\n\n'
                 f'Number of images: {len(url_dict)}\n')
         for k, v in url_dict.items():
-            f.write(f'{k}:{v}\n')
+            f.write(f'{k}:\t {v}\n')
 
 
 def display_dict(dic):
     print(f'Number of urls: {len(dic)}')
     for k, v in dic.items():
         print(f'{k}: {v}')
-
-
-def format_filename(string):
-    return re.sub(r'[\\/:*?"|,(\xa0)]', '', string).replace('  ', '_')
-
-
-# Deal with possible key errors from the overlapping part of two dictionaries
-def update(dict1, dict2):
-    val1 = list(dict1.values())
-    for k, v in dict2.copy().items():
-        if v in val1:
-            # new_k = list(dict1.keys())[val1.index(v)]
-            # dict2[new_k] = dict2.pop(k)
-            dict2.pop(k)
-    return dict1.update(dict2)
-
-
-def main():
-    start_time = time.time()
-    # print(start_time)
-    for url in URL_LIST[:1]:
-        img_urls = {}
-        pin = PinterestDriver(url, email=EMAIL, password=PASSWORD)
-
-        # Get name and author of Pinterest board
-        board_title = pin.get_title()
-        author = pin.get_author()
-        folder_name = f'{board_title}_{author}'
-
-        # Create image folder
-        file_dir = os.path.join(BASE_DIR, folder_name)
-        create_dir(file_dir)
-        os.chdir(file_dir)
-
-        pin.resize_window()
-        pin.login()
-
-        # Scroll page by fixed pixels and save image urls into a list until page reaches bottom
-        update(img_urls, pin.get_url_dict())
-        display_dict(img_urls)
-        # while not pin.has_reach_btm():
-        #     pin.scroll()
-        #     print('Scrolling down...')
-        #     time.sleep(5)
-        #     update(img_urls, pin.get_url_dict())
-        # print('Reached bottom!')
-        #
-        #
-        #
-        # # Close current window
-        # pin.close()
-        #
-        # # Save images to disk (temporary until write a new function to get more info about image)
-        # print('Saving images...')
-        # write_file(board_title, img_urls)
-        #
-        # # Log Url information
-        # print('Logging information...')
-        # log(url, img_urls, board_title)
-
-    print("--- %s seconds ---" % round((time.time() - start_time), 2))
-
-
-if __name__ == '__main__':
-    main()

@@ -17,19 +17,17 @@ def caption_jpg(filename, comment_str, path=os.path.curdir):
     img = Image.open(filename)
     width, height = img.size
 
-    font_size = int(width / 45)
+    font_size = int(width / 40)
     font = ImageFont.truetype('arial.ttf', font_size)
 
     line = wrap_text(comment_str, font, width - 40)
     num_of_lines = len(line)
     multi_line = '\n'.join(line)
 
-    print(multi_line)
-
     img_new = Image.new('RGB', (width, height + (num_of_lines * (font_size + 3)) + 10), color='White')
     draw = ImageDraw.Draw(img_new)
     Image.Image.paste(img_new, img, (0, 0))
 
-    draw.multiline_text((15, height + 10), multi_line, fill='Black', font=font)
+    draw.multiline_text((10, height + 10), multi_line, fill='Black', font=font)
 
-    img_new.show()
+    img_new.save(filename)
