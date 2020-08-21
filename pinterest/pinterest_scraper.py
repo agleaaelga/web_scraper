@@ -3,17 +3,9 @@ import time
 import re
 import os
 import requests
+from pinterest import img_caption
 
-BASE_DIR = 'D:\\Pinterest'
-URL_LIST = ['https://www.pinterest.com/1starchitecture/architecture-portfolio/',
-            'https://www.pinterest.com/archeyesnews/architecture-plans/',
-            'https://www.pinterest.com/archeyesnews/architects-drawings/',
-            'https://www.pinterest.com/archeyesnews/architecture-retrospective/',
-            'https://www.pinterest.com/archeyesnews/architecture-models/']
 IMG_URL_PATTERN = re.compile(r'https://i\.pinimg\.com/originals/.*\.(jpg|png|gif)')
-EMAIL = os.environ.get('DB_USER')
-PASSWORD = os.environ.get('DB_PASSWORD')
-
 
 class PinterestDriver:
     def __init__(self, pinterst_link, email, password):
@@ -25,7 +17,6 @@ class PinterestDriver:
         self.password = password
 
     def resize_window(self):
-        # self.driver.set_window_size(1920, 1080)
         self.driver.maximize_window()
 
     def login(self):
@@ -42,7 +33,7 @@ class PinterestDriver:
         print('Finish Login.')
 
     def scroll(self):
-        self.driver.execute_script('window.scrollBy(0,2500)')
+        self.driver.execute_script('window.scrollBy(0,2500)')  # scroll page by 2500 pixels each time
 
     def has_reach_btm(self):
         top_h = self.driver.execute_script('return document.documentElement.scrollTop')
@@ -91,12 +82,8 @@ def create_dir(dir_name):
         print('Creating directory')
 
 
-def shorten_oversize_string(string):
-    return string[:200] if len(string) > 200 else string
-
-
-def rename_duplicate_file(item, dic, i):
-    pass
+# def shorten_oversize_string(string):
+#     return string[:200] if len(string) > 200 else string
 
 
 def get_img_url(pattern, str_list):
@@ -110,8 +97,7 @@ def get_original_url(pattern, string):
 
 def write_file(name, url_dict):
     for k, v in url_dict.items():
-        response = requests.get(v)
-        k = shorten_oversize_string(k)
+        response = requests.get(k)
         img_filename = f'{k}.jpg'
         with open(img_filename, 'wb') as f:
             f.write(response.content)
