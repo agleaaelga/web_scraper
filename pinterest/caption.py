@@ -31,3 +31,4 @@ def caption_jpg(filename, comment_str, path=os.path.curdir):
     draw.multiline_text((10, height + 10), multi_line, fill='Black', font=font)
 
     img_new.save(filename)
+

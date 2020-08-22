@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 from selenium import webdriver
 import time
 import re
 import os
 import requests
-from pinterest import img_caption
+from pinterest import caption
 
 IMG_URL_PATTERN = re.compile(r'https://i\.pinimg\.com/originals/.*\.(jpg|png|gif)')
 
@@ -87,7 +89,8 @@ def write_file(name, url_dict):
         img_filename = f'{name}_{i}.jpg'
         with open(img_filename, 'wb') as f:
             f.write(response.content)
-        img_caption.caption_jpg(img_filename, v)
+        caption.caption_jpg(img_filename, v)
+        print_num_images_saved(i)
 
 
 def log(main_url, url_dict, board_name):
@@ -103,3 +106,9 @@ def display_dict(dic):
     print(f'Number of urls: {len(dic)}')
     for k, v in dic.items():
         print(f'{k}: {v}')
+
+
+def print_num_images_saved(index:int):
+    if index % 25 == 0:
+        print(f'Saved {index} images!')
+
